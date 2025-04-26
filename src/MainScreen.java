@@ -29,7 +29,6 @@ public class MainScreen extends JPanel {
      */
     public MainScreen(GameManager gameManager) {
         this.gameManager = gameManager;
-        gameManager.setMainScreen(this);
         
         // Set layout
         setLayout(new BorderLayout(10, 10));
@@ -40,8 +39,8 @@ public class MainScreen extends JPanel {
         createEmailList();
         createFooter();
         
-        // Update UI with initial values
-        updateUI();
+        // NOTE: We delay the updateUI() call to avoid the NullPointerException
+        // It will be called later by the GameManager after everything is initialized
     }
     
     /**
@@ -152,7 +151,14 @@ public class MainScreen extends JPanel {
     /**
      * Update the UI with current game state
      */
+    @Override
     public void updateUI() {
+        super.updateUI(); // Call the superclass method first
+        
+        if (gameManager == null) {
+            return; // Skip the update if gameManager is not set yet
+        }
+        
         // Update status indicators
         Player player = gameManager.getPlayer();
         EmailSystem emailSystem = gameManager.getEmailSystem();
@@ -185,15 +191,16 @@ public class MainScreen extends JPanel {
         boolean gameRunning = gameManager.isGameRunning();
         upgradeShopButton.setEnabled(gameRunning);
         pauseResumeButton.setEnabled(gameRunning);
-        
-        // Call superclass method to repaint
-        super.updateUI();
     }
     
     /**
      * Update the email list with current emails in inbox
      */
     private void updateEmailList() {
+        if (gameManager == null) {
+            return; // Skip the update if gameManager is not set yet
+        }
+        
         List<Email> inbox = gameManager.getEmailSystem().getInbox();
         
         // Remember selection

@@ -31,8 +31,13 @@ public class EmailDefender {
         UpgradeSystem upgradeSystem = new UpgradeSystem();
         gameManager = new GameManager(player, emailSystem, upgradeSystem);
         
-        // Create and show the main screen
+        // Create the main screen
         MainScreen mainScreen = new MainScreen(gameManager);
+        
+        // Set the main screen reference in game manager AFTER MainScreen is fully initialized
+        gameManager.setMainScreen(mainScreen);
+        
+        // Add main screen to frame
         mainFrame.add(mainScreen);
         
         // Show the tutorial on first run

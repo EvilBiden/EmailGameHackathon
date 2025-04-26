@@ -54,6 +54,13 @@ public class GameManager {
      */
     public void setMainScreen(MainScreen mainScreen) {
         this.mainScreen = mainScreen;
+        
+        // Now that everything is initialized, we can update the UI
+        if (mainScreen != null) {
+            SwingUtilities.invokeLater(() -> {
+                mainScreen.updateUI();
+            });
+        }
     }
     
     /**
@@ -191,7 +198,9 @@ public class GameManager {
         
         // Update UI after action
         if (mainScreen != null) {
-            mainScreen.updateUI();
+            SwingUtilities.invokeLater(() -> {
+                mainScreen.updateUI();
+            });
         }
     }
     

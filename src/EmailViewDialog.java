@@ -7,6 +7,7 @@ import java.awt.event.*;
 
 /**
  * Dialog for viewing and interacting with individual emails.
+ * Now includes a loading bar for email responses.
  */
 public class EmailViewDialog extends JDialog {
     private Email email;
@@ -16,7 +17,16 @@ public class EmailViewDialog extends JDialog {
     private JLabel senderLabel;
     private JLabel subjectLabel;
     private JTextArea contentArea;
-    private JPanel responsePanel;
+    private JButton replyButton;
+    private JButton markSpamButton;
+    private JButton deleteButton;
+    private JButton cancelButton;
+    private JProgressBar replyProgressBar;
+    
+    // Timer for the reply process
+    private Timer replyTimer;
+    private int replyProgress = 0;
+    private int replyDuration = 0; // Will be set based on player's response speed
     
     /**
      * Constructor for the email view dialog
@@ -78,53 +88,95 @@ public class EmailViewDialog extends JDialog {
     private void createButtonPanel() {
         JPanel buttonPanel = new JPanel(new BorderLayout(0, 10));
         
-        // Response options
-        responsePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        responsePanel.setBorder(new TitledBorder("Response Options"));
+        // Progress bar for reply
+        replyProgressBar = new JProgressBar(0, 100);
+        replyProgressBar.setStringPainted(true);
+        replyProgressBar.setString("Reply Progress");
+        replyProgressBar.setValue(0);
+        replyProgressBar.setVisible(false);
         
-        if (email.isLegitimate()) {
-            // Add response options for legitimate emails
-            String[] options = email.getResponseOptions();
-            for (String option : options) {
-                JButton responseButton = new JButton(option);
-                responseButton.addActionListener(e -> {
-                    gameManager.processEmailAction(email, "respond");
-                    dispose();
-                });
-                responsePanel.add(responseButton);
-            }
-        }
+        JPanel progressPanel = new JPanel(new BorderLayout());
+        progressPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        progressPanel.add(replyProgressBar, BorderLayout.CENTER);
         
-        buttonPanel.add(responsePanel, BorderLayout.CENTER);
+        buttonPanel.add(progressPanel, BorderLayout.NORTH);
         
         // Action buttons
-        JPanel actionPanel = new JPanel(new GridLayout(1, 3, 10, 0));
+        JPanel actionPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         
-        JButton deleteButton = new JButton("Delete");
+        replyButton = new JButton("Reply");
+        replyButton.addActionListener(e -> startReplyProcess());
+        
+        markSpamButton = new JButton("Mark as Spam");
+        markSpamButton.addActionListener(e -> {
+            gameManager.processEmailAction(email, "mark_spam");
+            dispose();
+        });
+        
+        deleteButton = new JButton("Delete");
         deleteButton.addActionListener(e -> {
             gameManager.processEmailAction(email, "delete");
             dispose();
         });
         
-        JButton markSpamButton = new JButton("Mark as Spam");
-        markSpamButton.addActionListener(e -> {
-            if (email.isSpam()) {
-                gameManager.processEmailAction(email, "delete");
-            } else {
-                gameManager.processEmailAction(email, "mark_spam");
-            }
-            dispose();
-        });
-        
-        JButton cancelButton = new JButton("Close");
+        cancelButton = new JButton("Close");
         cancelButton.addActionListener(e -> dispose());
         
-        actionPanel.add(deleteButton);
+        actionPanel.add(replyButton);
         actionPanel.add(markSpamButton);
+        actionPanel.add(deleteButton);
         actionPanel.add(cancelButton);
         
         buttonPanel.add(actionPanel, BorderLayout.SOUTH);
         
         add(buttonPanel, BorderLayout.SOUTH);
+    }
+    
+    /**
+     * Start the reply process with a progress bar
+     */
+    private void startReplyProcess() {
+        // Calculate reply duration based on player's response speed
+        double responseSpeedModifier = gameManager.getPlayer().getResponseSpeedModifier();
+        replyDuration = (int)(100 * responseSpeedModifier); // Base time (in timer ticks) * modifier
+        
+        // Set up the progress bar
+        replyProgressBar.setValue(0);
+        replyProgressBar.setVisible(true);
+        replyProgress = 0;
+        
+        // Disable buttons during reply
+        replyButton.setEnabled(false);
+        markSpamButton.setEnabled(false);
+        deleteButton.setEnabled(false);
+        cancelButton.setEnabled(false);
+        
+        // Create and start the timer
+        replyTimer = new Timer(30, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                replyProgress++;
+                replyProgressBar.setValue((int)(replyProgress * 100.0 / replyDuration));
+                
+                if (replyProgress >= replyDuration) {
+                    // Reply completed
+                    replyTimer.stop();
+                    gameManager.processEmailAction(email, "respond");
+                    dispose();
+                }
+            }
+        });
+        replyTimer.start();
+    }
+    
+    /**
+     * Override dispose to ensure timer is stopped when dialog closes
+     */
+    @Override
+    public void dispose() {
+        if (replyTimer != null && replyTimer.isRunning()) {
+            replyTimer.stop();
+        }
+        super.dispose();
     }
 }

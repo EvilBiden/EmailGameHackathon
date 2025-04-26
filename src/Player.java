@@ -138,11 +138,27 @@ public class Player {
     
     /**
      * Get the response speed modifier based on the Response Speed upgrade
+     * Lower values mean faster response times
      */
     public double getResponseSpeedModifier() {
         // Each level reduces response time by 5%
         int upgradeLevel = getUpgradeLevel(UpgradeType.RESPONSE_SPEED);
         return 1.0 - (upgradeLevel * 0.05);
+    }
+    
+    /**
+     * Get the base response time in milliseconds (before modifier)
+     */
+    public int getBaseResponseTime() {
+        // Base time of 3 seconds (3000ms)
+        return 3000;
+    }
+    
+    /**
+     * Get the actual response time in milliseconds after applying upgrade modifier
+     */
+    public int getActualResponseTime() {
+        return (int) (getBaseResponseTime() * getResponseSpeedModifier());
     }
     
     /**

@@ -162,6 +162,24 @@ public class GameManager {
             // Correct deletion of spam
             player.awardPoints(5);
             emailSystem.removeFromInbox(email);
+        } else if (action.equals("mark_spam") && email.isSpam()) {
+            // Correctly identified spam
+            player.awardPoints(5);
+            emailSystem.removeFromInbox(email);
+        } else if (action.equals("mark_spam") && !email.isSpam()) {
+            // Incorrectly marked legitimate email as spam
+            player.deductPoints(15);
+            incorrectDeletesCount++;
+            emailSystem.removeFromInbox(email);
+            
+            // Check if too many legitimate emails incorrectly handled
+            if (incorrectDeletesCount >= MAX_INCORRECT_DELETES) {
+                if (mainScreen != null) {
+                    SwingUtilities.invokeLater(() -> {
+                        gameOver("You've marked too many legitimate emails as spam! Game Over.");
+                    });
+                }
+            }
         } else {
             // Incorrect action
             player.deductPoints(15);

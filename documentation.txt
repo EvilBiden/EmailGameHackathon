@@ -1,0 +1,246 @@
+# Email Defender - Technical Documentation
+
+This document provides a detailed explanation of the Email Defender game implementation, covering the purpose, functionality, and interaction of each class within the application.
+
+## Table of Contents
+1. [Application Architecture](#application-architecture)
+2. [Class Descriptions](#class-descriptions)
+   - [EmailDefender](#emaildefender)
+   - [Email](#email)
+   - [EmailSystem](#emailsystem)
+   - [Player](#player)
+   - [UpgradeType and UpgradeSystem](#upgradetype-and-upgradesystem)
+   - [GameManager](#gamemanager)
+   - [MainScreen](#mainscreen)
+   - [EmailViewDialog](#emailviewdialog)
+   - [UpgradeShopDialog](#upgradeshopDialog)
+3. [Core Game Mechanics](#core-game-mechanics)
+4. [UI Implementation](#ui-implementation)
+5. [Threading and Concurrency](#threading-and-concurrency)
+
+## Application Architecture
+
+Email Defender follows a Model-View-Controller (MVC) architectural pattern:
+
+- **Model**: `Email`, `EmailSystem`, `Player`, `UpgradeType`, `UpgradeSystem` - Represent game data and logic
+- **View**: `MainScreen`, `EmailViewDialog`, `UpgradeShopDialog` - User interface components
+- **Controller**: `GameManager` - Manages game flow and interactions between model and view
+
+The application uses an event-driven approach to handle user interactions and game events.
+
+## Class Descriptions
+
+### EmailDefender
+
+**Purpose**: Main class that initializes the game and starts the application.
+
+**Key Functionality**:
+- Sets up the Swing look and feel
+- Creates the main application window
+- Initializes core game components
+- Displays the tutorial
+- Starts the game loop
+
+**Implementation Details**:
+- Uses `SwingUtilities.invokeLater()` to ensure UI initialization happens on the Event Dispatch Thread
+- Creates instances of `Player`, `EmailSystem`, and `UpgradeSystem`
+- Passes these to the `GameManager` for coordination
+- Creates and displays the `MainScreen`
+
+### Email
+
+**Purpose**: Represents an individual email in the game.
+
+**Key Functionality**:
+- Stores email properties (sender, subject, content, size, type, urgency)
+- Provides methods to determine if an email is spam or legitimate
+- Defines appropriate response options based on email type
+
+**Implementation Details**:
+- Uses `EmailType` enum to categorize different types of emails:
+  - `LEGITIMATE_WORK`, `LEGITIMATE_PERSONAL`, `LEGITIMATE_SUBSCRIPTION`, `LEGITIMATE_ACCOUNT`
+  - `SPAM_PHISHING`, `SPAM_PROMOTIONAL`, `SPAM_SCAM`, `SPAM_MALWARE`
+  - `URGENT`, `CHAIN`, `LARGE_ATTACHMENT`
+- Records the time an email was received using `LocalDateTime`
+- Provides display formatting methods for the UI
+
+### EmailSystem
+
+**Purpose**: Manages email generation, delivery, and inbox capacity.
+
+**Key Functionality**:
+- Generates new emails of various types
+- Controls the inbox storage mechanism
+- Tracks email status and inbox capacity
+- Provides methods to add and remove emails from the inbox
+
+**Implementation Details**:
+- Uses a thread-safe `CopyOnWriteArrayList` to store emails for concurrent access
+- Contains email template data for generating different types of emails
+- Implements a sophisticated algorithm to determine email types based on game level:
+  - Early levels have mostly legitimate emails with little spam
+  - Mid levels introduce more spam and special events
+  - Higher levels have complex email distributions
+- Calculates the total inbox size based on the size of individual emails
+- Implements inbox capacity management and expansion
+
+### Player
+
+**Purpose**: Manages player-related data and progression.
+
+**Key Functionality**:
+- Tracks score, coins, level, and upgrades
+- Implements the combo system for consecutive correct actions
+- Handles score and coin awards/deductions
+- Manages player upgrade levels
+
+**Implementation Details**:
+- Uses a `HashMap` to store upgrade levels for different upgrade types
+- Implements a combo multiplier system that increases up to 2.0x
+- Provides methods to calculate upgrade effects:
+  - Response speed modifier
+  - Spam filter chance
+  - Quick reply template count
+  - Search speed modifier
+  - Attachment space reduction
+- Handles level progression based on score thresholds
+
+### UpgradeType and UpgradeSystem
+
+**Purpose**: Define available upgrades and manage the upgrade process.
+
+**Key Functionality**:
+- Defines six types of upgrades with descriptions, effects, and costs
+- Calculates upgrade costs based on current level
+- Handles purchase transactions
+- Applies upgrade effects to gameplay
+
+**Implementation Details**:
+- `UpgradeType` enum defines the properties of each upgrade:
+  - Name, description, effect description, base cost
+- `UpgradeSystem` implements upgrade management:
+  - Enforces a maximum upgrade level (10)
+  - Implements a progressive cost formula (50% increase per level)
+  - Provides methods to check if upgrades can be purchased
+  - Applies immediate effects for certain upgrades
+  - Generates descriptive text for the UI
+
+### GameManager
+
+**Purpose**: Controls game flow, progression, and win/lose conditions.
+
+**Key Functionality**:
+- Initializes and manages the game loop
+- Schedules email generation at appropriate intervals
+- Processes player actions on emails
+- Manages level progression
+- Handles game over conditions
+
+**Implementation Details**:
+- Uses a `ScheduledExecutorService` to generate emails at intervals
+- Adjusts email generation rate based on player level
+- Implements spam filter auto-deletion based on player's upgrade level
+- Handles various game-over conditions:
+  - Inbox full
+  - Too many legitimate emails incorrectly deleted
+  - Too many critical emails missed
+- Manages the pause/resume functionality
+- Mediates between player actions and game state updates
+
+### MainScreen
+
+**Purpose**: Main game interface that displays the email list and game status.
+
+**Key Functionality**:
+- Displays the list of emails in the inbox
+- Shows game status (score, coins, level, inbox capacity)
+- Provides access to the upgrade shop
+- Enables interaction with emails
+
+**Implementation Details**:
+- Uses a `BorderLayout` with header, center, and footer panels
+- Implements a custom `JList` with a specialized cell renderer for emails
+- Uses a progress bar to visualize inbox capacity
+- Changes color of the capacity bar based on how full the inbox is
+- Provides double-click handler to open emails
+- Updates UI elements in response to game state changes
+
+### EmailViewDialog
+
+**Purpose**: Dialog for viewing and interacting with individual emails.
+
+**Key Functionality**:
+- Displays email content (sender, subject, body)
+- Provides appropriate response options based on email type
+- Allows delete and mark-as-spam actions
+
+**Implementation Details**:
+- Implements a modal dialog that blocks interaction with the main window
+- Dynamically generates response buttons based on email type
+- Communicates with the `GameManager` to process player actions
+- Uses a clean layout with separate sections for header, content, and actions
+
+### UpgradeShopDialog
+
+**Purpose**: Interface for purchasing upgrades.
+
+**Key Functionality**:
+- Displays available upgrades with descriptions
+- Shows current level, effect, and cost of each upgrade
+- Enables purchase of upgrades
+- Updates UI after purchases
+
+**Implementation Details**:
+- Creates a panel for each upgrade type
+- Dynamically updates UI after purchases
+- Disables purchase buttons for unavailable upgrades (max level or insufficient coins)
+- Shows current player coins and updates after purchases
+- Implements a scrollable layout to accommodate many upgrades
+
+## Core Game Mechanics
+
+### Email Processing
+- Emails are generated at intervals based on player level
+- Each email has a type, size, and urgency level
+- Players must differentiate between legitimate and spam emails
+- Correct actions award points and coins
+- Incorrect actions deduct points and may trigger penalties
+
+### Resource Management
+- Inbox has limited capacity (starting at 20 units)
+- Each email takes up space based on its size (1-9 units)
+- Inbox capacity can be upgraded
+- Game over occurs if inbox reaches capacity
+
+### Progression System
+- Points are earned for correct email handling
+- Coins are used to purchase upgrades
+- Level advancement is based on score thresholds
+- Higher levels introduce more complex emails and faster arrival rates
+
+### Upgrade System
+- Six different upgrade types with progressive costs
+- Each upgrade level provides specific benefits
+- Higher upgrade levels cost more coins
+- Maximum of 10 levels per upgrade
+
+## UI Implementation
+
+The game uses Java Swing for all UI components. Key UI elements include:
+
+- **Main Screen**: Shows inbox and status indicators
+- **Email List**: Custom-rendered list of emails with icons indicating type
+- **Email View**: Dialog for reading and responding to emails
+- **Upgrade Shop**: Interface for purchasing and viewing upgrades
+- **Status Indicators**: Score, coins, level, and inbox capacity displays
+
+## Threading and Concurrency
+
+The game uses multiple threads to handle different aspects:
+
+- **EDT (Event Dispatch Thread)**: Handles all UI operations
+- **Scheduler Thread**: Generates emails at intervals
+- **Safe Collections**: Uses `CopyOnWriteArrayList` for thread-safe email storage
+- **Thread Synchronization**: Updates UI on EDT using `SwingUtilities.invokeLater()`
+
+This threading model ensures smooth gameplay with responsive UI while maintaining game state consistency.

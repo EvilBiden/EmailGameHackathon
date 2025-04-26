@@ -7,6 +7,7 @@ import java.awt.event.*;
 
 /**
  * Dialog for purchasing upgrades in the game.
+ * Styled to look like a Windows 95 system component.
  */
 public class UpgradeShopDialog extends JDialog {
     private GameManager gameManager;
@@ -22,45 +23,117 @@ public class UpgradeShopDialog extends JDialog {
         super(owner, "Upgrade Shop", ModalityType.APPLICATION_MODAL);
         this.gameManager = gameManager;
         
-        // Set dialog properties
+        // Set dialog properties with Windows 95 styling
         setSize(600, 500);
         setLocationRelativeTo(owner);
-        setLayout(new BorderLayout(10, 10));
-        ((JPanel) getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
+        setBackground(Windows95Theme.WINDOW_BG);
         
-        // Create UI components
-        createHeaderPanel();
-        createUpgradesPanel();
-        createFooterPanel();
+        // Create custom Windows 95 title bar
+        JPanel titleBar = createTitleBar("Upgrade Shop");
+        
+        // Create content panel with Windows 95 styling
+        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
+        contentPanel.setBackground(Windows95Theme.WINDOW_BG);
+        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
+        // Create UI components with Windows 95 styling
+        JPanel headerPanel = createHeaderPanel();
+        JPanel upgradesScrollPane = createUpgradesPanel();
+        JPanel footerPanel = createFooterPanel();
+        
+        // Add components to content panel
+        contentPanel.add(headerPanel, BorderLayout.NORTH);
+        contentPanel.add(upgradesScrollPane, BorderLayout.CENTER);
+        contentPanel.add(footerPanel, BorderLayout.SOUTH);
+        
+        // Add components to dialog
+        setLayout(new BorderLayout());
+        add(titleBar, BorderLayout.NORTH);
+        add(contentPanel, BorderLayout.CENTER);
         
         // Initial update
         updateCoinsLabel();
     }
     
     /**
-     * Create the header panel with player coins
+     * Create a Windows 95 style title bar
      */
-    private void createHeaderPanel() {
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+    private JPanel createTitleBar(String title) {
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setBackground(Windows95Theme.TITLE_BAR_COLOR);
+        titleBar.setPreferredSize(new Dimension(600, 22));
         
-        JLabel titleLabel = new JLabel("Upgrade Shop");
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16));
+        JLabel titleLabel = new JLabel(" " + title);
+        titleLabel.setFont(Windows95Theme.WINDOW_TITLE_FONT);
+        titleLabel.setForeground(Windows95Theme.TITLE_TEXT_COLOR);
         
-        coinsLabel = new JLabel();
-        coinsLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        JPanel controlBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        controlBox.setBackground(Windows95Theme.TITLE_BAR_COLOR);
         
-        headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(coinsLabel, BorderLayout.EAST);
+        JButton closeButton = createTitleBarButton("X");
+        closeButton.addActionListener(e -> dispose());
         
-        add(headerPanel, BorderLayout.NORTH);
+        controlBox.add(closeButton);
+        
+        titleBar.add(titleLabel, BorderLayout.WEST);
+        titleBar.add(controlBox, BorderLayout.EAST);
+        
+        return titleBar;
     }
     
     /**
-     * Create the panel with all available upgrades
+     * Create a Windows 95 style title bar button
      */
-    private void createUpgradesPanel() {
+    private JButton createTitleBarButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(Windows95Theme.BOLD_FONT);
+        button.setForeground(Color.BLACK);
+        button.setBackground(Windows95Theme.BUTTON_FACE);
+        button.setBorder(BorderFactory.createRaisedBevelBorder());
+        button.setFocusPainted(false);
+        button.setPreferredSize(new Dimension(22, 20));
+        return button;
+    }
+    
+    /**
+     * Create the header panel with player coins in Windows 95 style
+     */
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Windows95Theme.WINDOW_BG);
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        
+        // Create icon for shop (folder icon)
+        JLabel iconLabel = new JLabel();
+        iconLabel.setIcon(UIManager.getIcon("FileView.directoryIcon"));
+        
+        JLabel titleLabel = new JLabel("  System Upgrades");
+        titleLabel.setFont(Windows95Theme.BOLD_FONT);
+        
+        coinsLabel = new JLabel();
+        coinsLabel.setFont(Windows95Theme.SYSTEM_FONT);
+        coinsLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(Windows95Theme.WINDOW_BG);
+        titlePanel.add(iconLabel, BorderLayout.WEST);
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(coinsLabel, BorderLayout.EAST);
+        
+        return headerPanel;
+    }
+    
+    /**
+     * Create the panel with all available upgrades in Windows 95 style
+     */
+    private JPanel createUpgradesPanel() {
         upgradesPanel = new JPanel(new GridLayout(0, 1, 0, 10));
+        upgradesPanel.setBackground(Windows95Theme.WINDOW_BG);
         
         // Get all upgrade types
         UpgradeType[] upgradeTypes = gameManager.getUpgradeSystem().getAllUpgradeTypes();
@@ -73,26 +146,36 @@ public class UpgradeShopDialog extends JDialog {
         
         JScrollPane scrollPane = new JScrollPane(upgradesPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        add(scrollPane, BorderLayout.CENTER);
+        scrollPane.setBackground(Windows95Theme.WINDOW_BG);
+        
+        JPanel scrollWrapper = new JPanel(new BorderLayout());
+        scrollWrapper.setBackground(Windows95Theme.WINDOW_BG);
+        scrollWrapper.setBorder(Windows95Theme.createTitledBorder("Available Upgrades"));
+        scrollWrapper.add(scrollPane, BorderLayout.CENTER);
+        
+        return scrollWrapper;
     }
     
     /**
-     * Create a panel for an individual upgrade
+     * Create a panel for an individual upgrade in Windows 95 style
      */
     private JPanel createUpgradePanel(UpgradeType type) {
         JPanel panel = new JPanel(new BorderLayout(10, 5));
+        panel.setBackground(Windows95Theme.WINDOW_BG);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            new EtchedBorder(),
-            new EmptyBorder(10, 10, 10, 10)
+            BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
         
         // Left side - upgrade info
         JPanel infoPanel = new JPanel(new GridLayout(3, 1));
+        infoPanel.setBackground(Windows95Theme.WINDOW_BG);
         
         JLabel nameLabel = new JLabel(type.getName());
-        nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD));
+        nameLabel.setFont(Windows95Theme.BOLD_FONT);
         
         JLabel descriptionLabel = new JLabel(type.getDescription());
+        descriptionLabel.setFont(Windows95Theme.SYSTEM_FONT);
         
         Player player = gameManager.getPlayer();
         int currentLevel = player.getUpgradeLevel(type);
@@ -100,14 +183,14 @@ public class UpgradeShopDialog extends JDialog {
         String effectDesc = gameManager.getUpgradeSystem().getUpgradeEffectDescription(type, currentLevel);
         
         JLabel statusLabel = new JLabel("Level: " + currentLevel + " | Effect: " + effectDesc);
+        statusLabel.setFont(Windows95Theme.SYSTEM_FONT);
         
         infoPanel.add(nameLabel);
         infoPanel.add(descriptionLabel);
         infoPanel.add(statusLabel);
         
-        // Right side - purchase button
-        JButton purchaseButton = new JButton("Upgrade (" + cost + " coins)");
-        purchaseButton.setPreferredSize(new Dimension(150, 30));
+        // Right side - purchase button with Windows 95 styling
+        JButton purchaseButton = Windows95Theme.createButton("Upgrade (" + cost + " coins)");
         
         // Disable button if max level or not enough coins
         boolean canPurchase = gameManager.getUpgradeSystem().canPurchaseUpgrade(player, type);
@@ -119,6 +202,9 @@ public class UpgradeShopDialog extends JDialog {
                 // Update UI after purchase
                 updateUpgradePanel(panel, type);
                 updateCoinsLabel();
+                
+                // Play Windows 95 style "ding" sound
+                Toolkit.getDefaultToolkit().beep();
             }
         });
         
@@ -150,17 +236,18 @@ public class UpgradeShopDialog extends JDialog {
     }
     
     /**
-     * Create the footer panel with close button
+     * Create the footer panel with close button in Windows 95 style
      */
-    private void createFooterPanel() {
+    private JPanel createFooterPanel() {
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footerPanel.setBackground(Windows95Theme.WINDOW_BG);
         
-        JButton closeButton = new JButton("Close");
+        JButton closeButton = Windows95Theme.createButton("Close");
         closeButton.addActionListener(e -> dispose());
         
         footerPanel.add(closeButton);
         
-        add(footerPanel, BorderLayout.SOUTH);
+        return footerPanel;
     }
     
     /**
@@ -168,6 +255,6 @@ public class UpgradeShopDialog extends JDialog {
      */
     private void updateCoinsLabel() {
         int coins = gameManager.getPlayer().getCoins();
-        coinsLabel.setText("Coins: " + coins);
+        coinsLabel.setText("Available Coins: " + coins + "  ");
     }
 }

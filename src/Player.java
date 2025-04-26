@@ -151,7 +151,7 @@ public class Player {
      */
     public int getBaseResponseTime() {
         // Base time of 3 seconds (3000ms)
-        return 3000;
+        return 5000;
     }
     
     /**

@@ -27,7 +27,7 @@ public class EmailSystem {
      */
     public EmailSystem() {
         inbox = new CopyOnWriteArrayList<>(); // Thread-safe list for concurrent modifications
-        inboxCapacity = 20; // Default capacity from the spec
+        inboxCapacity = 3; // Default capacity from the spec
         random = new Random();
     }
     
@@ -51,14 +51,16 @@ public class EmailSystem {
                 sender = workSenders[random.nextInt(workSenders.length)];
                 subject = workSubjects[random.nextInt(workSubjects.length)];
                 content = "This is a work-related email requiring your attention.";
-                size = random.nextInt(3) + 1; // Size 1-3
+                //size = random.nextInt(3) + 1; // Size 1-3
+                size = 1;
                 break;
                 
             case LEGITIMATE_PERSONAL:
                 sender = personalSenders[random.nextInt(personalSenders.length)];
                 subject = personalSubjects[random.nextInt(personalSubjects.length)];
                 content = "This is a personal email from " + sender + ".";
-                size = random.nextInt(2) + 1; // Size 1-2
+                //size = random.nextInt(2) + 1; // Size 1-2
+                size = 1;
                 break;
                 
             case LEGITIMATE_SUBSCRIPTION:
@@ -79,7 +81,8 @@ public class EmailSystem {
                 sender = spamSenders[random.nextInt(spamSenders.length)];
                 subject = spamSubjects[random.nextInt(spamSubjects.length)];
                 content = "Please click this link to claim your prize!";
-                size = random.nextInt(2) + 1; // Size 1-2
+                //size = random.nextInt(2) + 1; // Size 1-2
+                size = 1;
                 break;
                 
             case SPAM_PROMOTIONAL:
@@ -93,21 +96,22 @@ public class EmailSystem {
                 sender = "Prince";
                 subject = "Business Proposal";
                 content = "I need your help to transfer $10,000,000...";
-                size = 2;
+                size = 1;
                 break;
                 
             case SPAM_MALWARE:
                 sender = "System Admin";
                 subject = "Security Update Required";
                 content = "Please download this attachment immediately.";
-                size = 3; // Malware tends to be larger
+                size = 1; // Malware tends to be larger
                 break;
                 
             case URGENT:
                 sender = workSenders[random.nextInt(workSenders.length)];
                 subject = "URGENT: " + workSubjects[random.nextInt(workSubjects.length)];
                 content = "This requires your immediate attention!";
-                size = random.nextInt(3) + 1;
+                //size = random.nextInt(3) + 1;
+                size = 1;
                 urgent = true; // Always urgent
                 break;
                 
@@ -115,14 +119,16 @@ public class EmailSystem {
                 sender = "Multiple Recipients";
                 subject = "Re: Re: Re: Important Discussion";
                 content = "This is part of an ongoing discussion thread.";
-                size = random.nextInt(4) + 2; // Size 2-5 (larger due to chain)
+                //size = random.nextInt(4) + 2; // Size 2-5 (larger due to chain)
+                size = 1;
                 break;
                 
             case LARGE_ATTACHMENT:
                 sender = workSenders[random.nextInt(workSenders.length)];
                 subject = "Files Attached";
                 content = "I've attached the requested files.";
-                size = random.nextInt(5) + 5; // Size 5-9 (large attachment)
+                //size = random.nextInt(5) + 5; // Size 5-9 (large attachment)
+                size = 1;
                 break;
         }
         
